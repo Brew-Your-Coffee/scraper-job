@@ -1,0 +1,10 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: Scraper Service
+  elasticsearch:
+    username: elastic
+    password: password
+es:
+  index: coffee

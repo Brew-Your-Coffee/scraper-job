@@ -25,7 +25,7 @@ public class CafeBoutiqueScraper implements Scraper {
     private static final String AVAILABLE = "Придбати";
 
     @Override
-    public List<CoffeeDto> scrape() {
+    public List<CoffeeDto> scrape() throws ScraperException {
         List<CoffeeDto> result = new ArrayList<>();
 
         try {
@@ -58,7 +58,7 @@ public class CafeBoutiqueScraper implements Scraper {
         }
     }
 
-    private CoffeeDto scrapeCoffeeInfo(String ref) {
+    private CoffeeDto scrapeCoffeeInfo(String ref) throws ScraperException {
         try {
             Document document = Jsoup.connect(ref).get();
 

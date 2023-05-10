@@ -6,6 +6,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class ExceptionBase extends RuntimeException {
+public class ExceptionBase extends Exception {
     private final ErrorDetails errorDetails;
 }

@@ -23,7 +23,7 @@ public class MadHeadsScraper implements Scraper {
     private final MadHeadsParser parser;
 
     @Override
-    public List<CoffeeDto> scrape() {
+    public List<CoffeeDto> scrape() throws ScraperException {
         List<CoffeeDto> result = new ArrayList<>();
 
         try {

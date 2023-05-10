@@ -3,7 +3,9 @@ package com.coffee.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.UpdateByQueryRequest;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+import co.elastic.clients.json.JsonData;
 import com.coffee.domain.CoffeeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,13 +26,12 @@ public class ElasticSearchService {
 
     private final ElasticsearchClient esClient;
 
-    public void index(List<CoffeeDto> coffeeDtoList) throws IOException {
-        Date currentDate = new Date();
+    public void index(List<CoffeeDto> coffeeDtoList, Date currentDate) throws IOException {
         BulkRequest.Builder br = new BulkRequest.Builder();
 
         for (CoffeeDto coffeeDto : coffeeDtoList) {
             coffeeDto.setEnabled(true);
-            coffeeDto.setLastUpdated(currentDate    );
+            coffeeDto.setLastUpdated(currentDate);
 
             br.operations(op -> op
                     .index(idx -> idx
@@ -43,14 +44,23 @@ public class ElasticSearchService {
 
         BulkResponse result = esClient.bulk(br.build());
 
-        // Log errors, if any
         if (result.errors()) {
             log.error("Bulk had errors");
-            for (BulkResponseItem item: result.items()) {
+            for (BulkResponseItem item : result.items()) {
                 if (item.error() != null) {
                     log.error(item.error().reason());
                 }
             }
         }
+    }
+
+    public void updateDisabledEntities(Date currentDate) throws IOException {
+        UpdateByQueryRequest request = new UpdateByQueryRequest.Builder()
+                .index(indexName)
+                .query(fn -> fn.range(rq -> rq.field("lastUpdated").lt(JsonData.of(currentDate))))
+                .script(fn -> fn.inline(is -> is.source("ctx._source.enabled = false")))
+                .build();
+
+        esClient.updateByQuery(request);
     }
 }

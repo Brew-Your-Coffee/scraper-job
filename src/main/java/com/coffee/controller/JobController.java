@@ -1,5 +1,7 @@
 package com.coffee.controller;
 
+import com.coffee.exception.ElasticSearchException;
+import com.coffee.exception.ScraperException;
 import com.coffee.service.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +17,7 @@ public class JobController {
 
     @PostMapping("/run")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void run() {
+    public void run() throws ScraperException, ElasticSearchException {
         jobService.run();
     }
 }

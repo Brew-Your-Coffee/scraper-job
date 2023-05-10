@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.coffee.constants.CountryConstants.getCountryTranslated;
 import static java.util.Collections.emptySet;
 import static java.util.Map.entry;
 
@@ -58,7 +60,9 @@ public class FreshBlackParser {
     private void setDescriptionParams(Element productContainerElement, CoffeeDto coffeeDto) {
         Element infoElement = productContainerElement.select("div.product-card__info > div.product-card__info-params").first();
 
-        coffeeDto.setCountry(getSingleElement(infoElement, COUNTRY_TITLE));
+        String country = getSingleElement(infoElement, COUNTRY_TITLE);
+
+        coffeeDto.setCountry(country != null ? getCountryTranslated(StringUtils.capitalize(country)) : null);
         coffeeDto.setRoast(getSingleElement(infoElement, ROAST_TITLE));
         coffeeDto.setProcessingMethod(getSingleElement(infoElement, PROCESSING_METHODS_TITLE));
         coffeeDto.setTastes(getElementsSet(infoElement, TASTES_TITLE));
@@ -101,7 +105,8 @@ public class FreshBlackParser {
 
         if (additionalParamValueElement == null) return emptySet();
 
-        return Arrays.stream(additionalParamValueElement.text().split("[\\s,\\s]+"))
+        return Arrays.stream(additionalParamValueElement.text().split(",\\s*"))
+                .filter(io.micrometer.common.util.StringUtils::isNotEmpty)
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
     }
@@ -131,7 +136,7 @@ public class FreshBlackParser {
         for (Element valueElement : values) {
             String valueImage = valueElement.attr("src");
             String value = RECOMMENDED_BREW_METHODS_IMAGE_TO_STING.getOrDefault(valueImage, null);
-            if (value != null) {
+            if (io.micrometer.common.util.StringUtils.isNotEmpty(value)) {
                 result.add(value);
             }
         }

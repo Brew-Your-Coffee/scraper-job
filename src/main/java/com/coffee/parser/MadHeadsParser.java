@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.coffee.constants.CountryConstants.getCountryTranslated;
 import static java.util.Collections.singleton;
 
 @Component
@@ -33,7 +34,7 @@ public class MadHeadsParser {
         coffeeDto.setSource(SERVICE_NAME);
         setDescriptionParams(productElement, coffeeDto);
 
-        if(coffeeDto.getDescription() == null) return null;
+        if (coffeeDto.getDescription() == null) return null;
 
         return coffeeDto;
     }
@@ -43,14 +44,14 @@ public class MadHeadsParser {
 
         coffeeDto.setUrl(imageContainer.attr("href"));
         coffeeDto.setImageUrl(getImageUrl(imageContainer));
-        coffeeDto.setCountry(getCountry(imageContainer));
+        coffeeDto.setCountry(getCountryTranslated(getCountry(imageContainer)));
     }
 
     private String getTitle(Element imageContainer) {
         Element titleElement = imageContainer.select("a > h2.woocommerce-loop-product__title").first();
         String titleText = titleElement.text();
-        List<String> titleTokens = Arrays.stream(titleText.split("\\s+")).toList();
-        if(titleTokens.size() == 1) return titleText;
+        List<String> titleTokens = Arrays.stream(titleText.split("[\\s*,\\s*]")).toList();
+        if (titleTokens.size() == 1) return titleText;
         return String.join(" ", titleTokens.subList(0, titleTokens.size() - 1));
     }
 
@@ -77,7 +78,7 @@ public class MadHeadsParser {
     private void setDescriptionParams(Element productElement, CoffeeDto coffeeDto) {
         Element productDescriptionElement = productElement.select(".product-description-wrap").first();
 
-        if(productDescriptionElement == null) return;
+        if (productDescriptionElement == null) return;
 
         coffeeDto.setTastes(getElementsSet(productDescriptionElement, 1));
         coffeeDto.setProcessingMethod(getSingleElement(productDescriptionElement, 2).toLowerCase());
@@ -97,14 +98,15 @@ public class MadHeadsParser {
     private Set<String> getRecommendedBrewMethod(Element description) {
         Element recommendedBrewMethodElement = description.select("div.product-description-line").get(6)
                 .select("div.product-description-line-left").first();
-        String[] recommendedBrewMethodTokens = recommendedBrewMethodElement.text().split("[\\s,\\s]+");
+        String[] recommendedBrewMethodTokens = recommendedBrewMethodElement.text().split("[\\s*,\\s*]");
         return singleton(recommendedBrewMethodTokens[recommendedBrewMethodTokens.length - 2]);
     }
 
     private Set<String> getElementsSet(Element description, int index) {
-        Element tastesElement = description.select("div.product-description-line").get(index)
+        Element descriptionElement = description.select("div.product-description-line").get(index)
                 .select("div.product-description-line-right").first();
-        return Arrays.stream(tastesElement.text().split("[\\s,\\s]+"))
+        return Arrays.stream(descriptionElement.text().split("[\\s*,\\s*]"))
+                .filter(io.micrometer.common.util.StringUtils::isNotEmpty)
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
     }

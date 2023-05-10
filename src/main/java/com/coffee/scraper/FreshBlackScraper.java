@@ -26,7 +26,7 @@ public class FreshBlackScraper implements Scraper {
     private final FreshBlackParser parser;
 
     @Override
-    public List<CoffeeDto> scrape() {
+    public List<CoffeeDto> scrape() throws ScraperException {
         List<CoffeeDto> result = new ArrayList<>();
         try {
             Document mainPage = Jsoup.connect("https://fresh.black/catalog/speshalti").get();
@@ -51,7 +51,7 @@ public class FreshBlackScraper implements Scraper {
         return result;
     }
 
-    private CoffeeDto scrapeCoffeeInfo(Element element) {
+    private CoffeeDto scrapeCoffeeInfo(Element element) throws ScraperException {
         try {
             String ref = BASE_URL + element.select("div.product-card__img > a").first().attr("href");
             Document document = Jsoup.connect(ref).get();

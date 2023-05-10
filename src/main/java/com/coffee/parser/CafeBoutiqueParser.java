@@ -1,6 +1,7 @@
 package com.coffee.parser;
 
 import com.coffee.domain.CoffeeDto;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.coffee.constants.CountryConstants.getCountryTranslated;
 
 @Component
 @Slf4j
@@ -26,7 +29,7 @@ public class CafeBoutiqueParser {
         coffeeDto.setTitle(title);
         coffeeDto.setPrice(getPrice(productDescription));
         coffeeDto.setSource(SERVICE_NAME);
-        coffeeDto.setCountry(getCountry(title));
+        coffeeDto.setCountry(getCountryTranslated(getCountry(title)));
         setDescriptionParams(productDescription, coffeeDto);
 
         return coffeeDto;
@@ -75,8 +78,9 @@ public class CafeBoutiqueParser {
     }
 
     private Set<String> getElementsSet(Element description, int index) {
-        Element tastesElement = description.select("p").get(index);
-        return Arrays.stream(tastesElement.text().split("[\\s,\\s]+"))
+        Element descriptionElement = description.select("p").get(index);
+        return Arrays.stream(descriptionElement.text().split("[\\s*,\\s*]"))
+                .filter(StringUtils::isNotEmpty)
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
     }
